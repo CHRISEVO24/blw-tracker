@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLW Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --border:   #2a2d3a;
+  --text-1:   #f0f2f8;
+  --text-2:   #9ca3b0;
+  --text-3:   #5a6070;
+  --accent:   #4f8ef7;
+  --green:    #34d399;
+  --red:      #f87171;
+  --blue:     #60a5fa;
+  --amber:    #fbbf24;
+  --purple:   #a78bfa;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.3px; }
+.logo span { color: var(--accent); }
+.badge-live {
+  background: rgba(52,211,153,.15);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(52,211,153,.3);
+}
+.last-updated { font-size: 12px; color: var(--text-3); }
+
+/* ── Stats ── */
+.stats {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stat {
+  flex: 1;
+  background: var(--surface);
+  padding: 16px 20px;
+  min-width: 120px;
+}
+.stat-label { font-size: 11px; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.stat-value.green { color: var(--green); }
+.stat-value.red   { color: var(--red); }
+.stat-value.blue  { color: var(--blue); }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 12px 24px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color .15s;
+}
+.tab:hover { color: var(--text-1); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79,142,247,.2);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  margin-left: 6px;
+}
+.badge.green { background: rgba(52,211,153,.2); color: var(--green); }
+.badge.red   { background: rgba(248,113,113,.2); color: var(--red); }
+
+/* ── Panels ── */
+.panel { display: none; padding: 20px 24px; }
+.panel.active { display: block; }
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.toolbar input, .toolbar select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+.toolbar input:focus, .toolbar select:focus { border-color: var(--accent); }
+.toolbar input { min-width: 220px; }
+.toolbar select { min-width: 160px; }
+.result-count { font-size: 12px; color: var(--text-3); margin-left: auto; }
+.btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn:hover { border-color: var(--accent); color: var(--text-1); }
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--surface);
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+thead th:hover { color: var(--text-1); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,.03); }
+tbody td { padding: 10px 14px; vertical-align: middle; }
+
+.brand-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  letter-spacing: .2px;
+}
+.bc-rolex       { background: rgba(218,165,32,.15); color: #d4a422; border: 1px solid rgba(218,165,32,.25); }
+.bc-patek       { background: rgba(100,149,237,.15); color: #7aabf0; border: 1px solid rgba(100,149,237,.25); }
+.bc-ap          { background: rgba(160,82,45,.15); color: #c8956a; border: 1px solid rgba(160,82,45,.25); }
+.bc-omega       { background: rgba(70,130,180,.15); color: #6aabda; border: 1px solid rgba(70,130,180,.25); }
+.bc-cartier     { background: rgba(183,28,28,.15); color: #ef6a6a; border: 1px solid rgba(183,28,28,.25); }
+.bc-vacheron    { background: rgba(46,125,50,.15); color: #6abf6e; border: 1px solid rgba(46,125,50,.25); }
+.bc-panerai     { background: rgba(230,81,0,.15); color: #f09050; border: 1px solid rgba(230,81,0,.25); }
+.bc-hublot      { background: rgba(55,71,79,.2); color: #90a4ae; border: 1px solid rgba(55,71,79,.3); }
+.bc-tudor       { background: rgba(183,28,28,.12); color: #e57373; border: 1px solid rgba(183,28,28,.2); }
+.bc-breitling   { background: rgba(0,96,100,.15); color: #4db6ac; border: 1px solid rgba(0,96,100,.25); }
+.bc-iwc         { background: rgba(40,53,147,.15); color: #7986cb; border: 1px solid rgba(40,53,147,.25); }
+.bc-jlc         { background: rgba(74,20,140,.15); color: #b39ddb; border: 1px solid rgba(74,20,140,.25); }
+.bc-other       { background: rgba(79,142,247,.1); color: var(--accent); border: 1px solid rgba(79,142,247,.2); }
+
+.model-ref { font-size: 13px; color: var(--text-1); max-width: 340px; }
+.price-cell { font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+.price-null { color: var(--text-3); }
+.avail-yes { color: var(--green); font-size: 12px; }
+.avail-no  { color: var(--red); font-size: 12px; }
+.price-up   { color: var(--red); font-weight: 600; }
+.price-down { color: var(--green); font-weight: 600; }
+.prev-price { color: var(--text-3); text-decoration: line-through; }
+.section-heading {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 20px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.08);
+}
+.count-green { background: rgba(52,211,153,.15); color: var(--green); }
+.count-red   { background: rgba(248,113,113,.15); color: var(--red); }
+.count-blue  { background: rgba(96,165,250,.15); color: var(--blue); }
+
+/* ── Empty / loading / error states ── */
+.empty { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 36px; margin-bottom: 12px; }
+.loading-wrap, .error-wrap { text-align: center; padding: 80px 20px; }
+.spinner {
+  display: inline-block;
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-icon { font-size: 36px; margin-bottom: 12px; }
+.error-msg { color: var(--red); font-size: 14px; }
+
+@media (max-width: 640px) {
+  .stats { flex-wrap: wrap; }
+  .stat { min-width: 50%; }
+  .panel { padding: 16px; }
+  .toolbar input { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">BLW <span>Tracker</span></div>
+    <span class="badge-live">LIVE</span>
+  </div>
+  <div class="last-updated" id="lastUpdated">Loading…</div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Total Listings</div>
+    <div class="stat-value" id="sTotal">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Brands</div>
+    <div class="stat-value blue" id="sBrands">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Total Value</div>
+    <div class="stat-value" id="sValue">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Avg Price</div>
+    <div class="stat-value" id="sAvg">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">New In</div>
+    <div class="stat-value green" id="sNew">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Sold / Out</div>
+    <div class="stat-value red" id="sSold">—</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-panel="inventory" onclick="switchTab(this)">
+    Inventory <span class="badge" id="badgeInv">—</span>
+  </button>
+  <button class="tab" data-panel="changes" onclick="switchTab(this)">
+    Changes <span class="badge" id="badgeChanges">0</span>
+  </button>
+  <button class="tab" data-panel="prices" onclick="switchTab(this)">
+    Price Changes <span class="badge" id="badgePrice">0</span>
+  </button>
+</div>
+
+<!-- ── Inventory panel ── -->
+<div class="panel active" id="panel-inventory">
+  <div class="toolbar">
+    <input id="searchInput" placeholder="Search model, brand, tags…" oninput="applyFilters()">
+    <select id="brandFilter" onchange="applyFilters()"><option value="">All Brands</option></select>
+    <select id="priceFilter" onchange="applyFilters()">
+      <option value="">Any Price</option>
+      <option value="0-5000">Under $5K</option>
+      <option value="5000-15000">$5K – $15K</option>
+      <option value="15000-30000">$15K – $30K</option>
+      <option value="30000-9999999">$30K+</option>
+    </select>
+    <select id="sortSel" onchange="applyFilters()">
+      <option value="brand|asc">Brand A→Z</option>
+      <option value="price|desc">Price High→Low</option>
+      <option value="price|asc">Price Low→High</option>
+      <option value="title|asc">Title A→Z</option>
+    </select>
+    <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+    <span class="result-count" id="resultCount"></span>
+  </div>
+
+  <div id="loadingState" class="loading-wrap">
+    <div class="spinner"></div>
+    <div style="color:var(--text-2)">Loading inventory…</div>
+  </div>
+  <div id="errorState" class="error-wrap" hidden>
+    <div class="error-icon">⚠️</div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+  <div id="tableWrap" hidden>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="clickSort('brand')">Brand</th>
+            <th onclick="clickSort('title')">Model / Reference</th>
+            <th onclick="clickSort('price')">Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="invBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Changes panel ── -->
+<div class="panel" id="panel-changes">
+  <div id="changesContent"><div class="empty"><div class="empty-icon">📋</div><p style="color:var(--text-3)">Loading…</p></div></div>
+</div>
+
+<!-- ── Price Changes panel ── -->
+<div class="panel" id="panel-prices">
+  <div id="priceContent"><div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">Loading…</p></div></div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const HISTORY_URL = 'https://raw.githubusercontent.com/CHRISEVO24/blw-tracker/main/history.json';
+const SNAP_KEY    = 'blwTP_snap_v1';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let all = [], filtered = [], prevSnap = null;
+let sortKey = 'brand', sortDir = 'asc';
+
+// ── Brand → CSS class ─────────────────────────────────────────────────────────
+const BRAND_MAP = {
+  rolex: 'bc-rolex', 'patek philippe': 'bc-patek', omega: 'bc-omega',
+  cartier: 'bc-cartier', tudor: 'bc-tudor', panerai: 'bc-panerai',
+  hublot: 'bc-hublot', breitling: 'bc-breitling', iwc: 'bc-iwc',
+  'jaeger-lecoultre': 'bc-jlc', 'jaeger lecoultre': 'bc-jlc',
+  'vacheron constantin': 'bc-vacheron',
+};
+function bc(brand) {
+  return BRAND_MAP[(brand||'').toLowerCase()] || 'bc-other';
+}
+
+function fmt(n) {
+  if (!n) return '—';
+  return n >= 1000000 ? '$' + (n/1000000).toFixed(1) + 'M' : '$' + (n/1000).toFixed(0) + 'K';
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    // Load previous snapshot from localStorage
+    try {
+      const stored = localStorage.getItem(SNAP_KEY);
+      if (stored) prevSnap = JSON.parse(stored);
+    } catch {}
+
+    const res = await fetch(HISTORY_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const history = await res.json();
+
+    const keys = Object.keys(history).sort();
+    if (!keys.length) throw new Error('No snapshots yet — run the scraper first.');
+
+    const latestKey  = keys[keys.length - 1];
+    const latestSnap = history[latestKey];
+
+    // Save current as new "previous" for next load
+    try { localStorage.setItem(SNAP_KEY, JSON.stringify({ ts: latestKey, items: Object.values(latestSnap) })); } catch {}
+
+    all = Object.values(latestSnap);
+
+    document.getElementById('lastUpdated').textContent = 'Last scraped: ' + latestKey + ' ET';
+    document.getElementById('loadingState').hidden = true;
+    document.getElementById('tableWrap').hidden = false;
+
+    updateStats();
+    buildBrandFilter();
+    applyFilters();
+    renderChanges();
+    renderPriceChanges();
+
+  } catch (e) {
+    document.getElementById('loadingState').hidden = true;
+    document.getElementById('errorState').hidden = false;
+    document.getElementById('errorMsg').textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const priced  = all.filter(i => i.price);
+  const total   = priced.reduce((s, i) => s + i.price, 0);
+  const brands  = new Set(all.map(i => i.brand)).size;
+
+  document.getElementById('sTotal').textContent  = all.length;
+  document.getElementById('sBrands').textContent = brands;
+  document.getElementById('sValue').textContent  = fmt(total);
+  document.getElementById('sAvg').textContent    = priced.length ? '$' + Math.round(total / priced.length).toLocaleString() : '—';
+  document.getElementById('badgeInv').textContent = all.length;
+
+  if (prevSnap?.items) {
+    const prev = new Set(prevSnap.items.map(i => i.id));
+    const cur  = new Set(all.map(i => i.id));
+    const nNew  = all.filter(i => !prev.has(i.id)).length;
+    const nSold = prevSnap.items.filter(i => !cur.has(i.id)).length;
+    document.getElementById('sNew').textContent  = '+' + nNew;
+    document.getElementById('sSold').textContent = nSold;
+    document.getElementById('badgeChanges').textContent = nNew + nSold;
+  }
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function buildBrandFilter() {
+  const brands = [...new Set(all.map(i => i.brand))].sort();
+  const sel = document.getElementById('brandFilter');
+  sel.innerHTML = '<option value="">All Brands</option>';
+  brands.forEach(b => {
+    const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  const q     = document.getElementById('searchInput').value.toLowerCase();
+  const brand = document.getElementById('brandFilter').value;
+  const prR   = document.getElementById('priceFilter').value;
+  const [sk, sd] = document.getElementById('sortSel').value.split('|');
+  sortKey = sk; sortDir = sd;
+
+  filtered = all.filter(item => {
+    if (brand && item.brand !== brand) return false;
+    if (prR) {
+      const [lo, hi] = prR.split('-').map(Number);
+      if (!item.price || item.price < lo || item.price > hi) return false;
+    }
+    if (q) {
+      const hay = (item.title + ' ' + item.brand + ' ' + (item.tags || '')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    let av = a[sk], bv = b[sk];
+    if (sk === 'price') { av = av || 0; bv = bv || 0; return sd === 'desc' ? bv - av : av - bv; }
+    const c = String(av || '').localeCompare(String(bv || ''));
+    return sd === 'desc' ? -c : c;
+  });
+
+  renderTable();
+  document.getElementById('resultCount').textContent = filtered.length + ' of ' + all.length + ' listings';
+}
+
+function clickSort(key) {
+  const sel = document.getElementById('sortSel');
+  const [ck, cd] = sel.value.split('|');
+  sel.value = key + '|' + (ck === key && cd === 'asc' ? 'desc' : 'asc');
+  applyFilters();
+}
+
+// ── Render table ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('invBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-3)">No items match your filters</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(i => `
+    <tr>
+      <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
+      <td class="model-ref"><a href="${i.url}" target="_blank" style="color:var(--text-1);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-1)'">${esc(i.title)}</a></td>
+      <td>${i.price ? `<span class="price-cell">$${i.price.toLocaleString()}</span>` : '<span class="price-null">—</span>'}</td>
+      <td>${i.available ? '<span class="avail-yes">● In Stock</span>' : '<span class="avail-no">○ Unavailable</span>'}</td>
+    </tr>`).join('');
+}
+
+// ── Changes ───────────────────────────────────────────────────────────────────
+function renderChanges() {
+  const el = document.getElementById('changesContent');
+  if (!prevSnap?.items) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p style="color:var(--text-3)">No previous snapshot. Reload after the next scrape to see changes.</p></div>';
+    return;
+  }
+  const prevM = new Map(prevSnap.items.map(i => [i.id, i]));
+  const curM  = new Map(all.map(i => [i.id, i]));
+  const added   = all.filter(i => !prevM.has(i.id));
+  const removed = prevSnap.items.filter(i => !curM.has(i.id));
+  document.getElementById('badgeChanges').textContent = added.length + removed.length;
+
+  if (!added.length && !removed.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p style="color:var(--text-3)">No inventory changes since last snapshot.</p></div>';
+    return;
+  }
+
+  let html = '';
+  if (added.length) {
+    html += `<div class="section-heading" style="color:var(--green)">New Listings <span class="count count-green">${added.length}</span></div>`;
+    html += tableHTML(added);
+  }
+  if (removed.length) {
+    html += `<div class="section-heading" style="color:var(--red);margin-top:32px">Removed / Sold <span class="count count-red">${removed.length}</span></div>`;
+    html += tableHTML(removed);
+  }
+  el.innerHTML = html;
+}
+
+function renderPriceChanges() {
+  const el = document.getElementById('priceContent');
+  if (!prevSnap?.items) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">No previous snapshot available.</p></div>';
+    return;
+  }
+  const prevM = new Map(prevSnap.items.map(i => [i.id, i]));
+  const changed = all.filter(i => {
+    const p = prevM.get(i.id);
+    return p && p.price && i.price && p.price !== i.price;
+  }).map(i => ({ ...i, prevPrice: prevM.get(i.id).price }));
+
+  document.getElementById('badgePrice').textContent = changed.length;
+
+  if (!changed.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">No price changes since last snapshot.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="section-heading" style="color:var(--blue)">Price Changes <span class="count count-blue">${changed.length}</span></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Brand</th><th>Model</th><th>Previous</th><th style="text-align:right">Current</th><th style="text-align:right">Δ</th></tr></thead>
+      <tbody>${changed.map(i => {
+        const diff = i.price - i.prevPrice;
+        const cls  = diff > 0 ? 'price-up' : 'price-down';
+        const sign = diff > 0 ? '▲' : '▼';
+        return `<tr>
+          <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
+          <td class="model-ref"><a href="${i.url}" target="_blank" style="color:var(--text-1);text-decoration:none">${esc(i.title)}</a></td>
+          <td class="prev-price">$${i.prevPrice.toLocaleString()}</td>
+          <td style="text-align:right"><span class="price-cell">$${i.price.toLocaleString()}</span></td>
+          <td style="text-align:right"><span class="${cls}">${sign} $${Math.abs(diff).toLocaleString()}</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+function tableHTML(items) {
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Brand</th><th>Model / Reference</th><th style="text-align:right">Price</th><th>Status</th></tr></thead>
+    <tbody>${items.map(i => `<tr>
+      <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
+      <td class="model-ref"><a href="${i.url || '#'}" target="_blank" style="color:var(--text-1);text-decoration:none">${esc(i.title)}</a></td>
+      <td style="text-align:right">${i.price ? `<span class="price-cell">$${i.price.toLocaleString()}</span>` : '<span class="price-null">—</span>'}</td>
+      <td>${i.available ? '<span class="avail-yes">● In Stock</span>' : '<span class="avail-no">○ Unavailable</span>'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + el.dataset.panel).classList.add('active');
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const src  = filtered.length ? filtered : all;
+  const rows = [['Brand', 'Model / Reference', 'Price (USD)', 'Available', 'URL'],
+    ...src.map(i => [i.brand, i.title, i.price || '', i.available ? 'Yes' : 'No', i.url])];
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'BLW_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+loadData();
+</script>
+</body>
+</html>
