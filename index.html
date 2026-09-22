@@ -4,618 +4,1044 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BLW Tracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-:root {
-  --bg:       #0f1117;
-  --surface:  #1a1d27;
-  --border:   #2a2d3a;
-  --text-1:   #f0f2f8;
-  --text-2:   #9ca3b0;
-  --text-3:   #5a6070;
-  --accent:   #4f8ef7;
-  --green:    #34d399;
-  --red:      #f87171;
-  --blue:     #60a5fa;
-  --amber:    #fbbf24;
-  --purple:   #a78bfa;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text-1);
-  min-height: 100vh;
-  font-size: 14px;
-}
+  :root {
+    --gold:#B8892A; --gold-lt:#FDF6E8;
+    --bg:#F4F5F7; --white:#FFFFFF; --border:#E0E3E8;
+    --text:#1A1D23; --muted:#6B7280; --light:#9CA3AF;
+    --green:#16A34A; --green-bg:#F0FDF4; --green-br:#BBF7D0;
+    --red:#DC2626; --red-bg:#FFF1F1; --red-br:#FECACA;
+    --blue:#2563EB; --blue-bg:#EFF6FF; --blue-br:#BFDBFE;
+    --radius:8px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.5;}
 
-/* ── Header ── */
-.header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.header-left { display: flex; align-items: center; gap: 12px; }
-.logo { font-size: 18px; font-weight: 700; color: var(--text-1); letter-spacing: -0.3px; }
-.logo span { color: var(--accent); }
-.badge-live {
-  background: rgba(52,211,153,.15);
-  color: var(--green);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 20px;
-  border: 1px solid rgba(52,211,153,.3);
-}
-.last-updated { font-size: 12px; color: var(--text-3); }
+  /* TABS */
+  .tab-bar{background:#1A1D23;display:flex;align-items:center;padding:0 20px;height:54px;gap:0;}
+  .logo-name{font-size:15px;font-weight:700;color:#fff;margin-right:24px;white-space:nowrap;}
+  .logo-tag{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-left:6px;}
+  .tab{background:transparent;border:none;border-bottom:3px solid transparent;color:#888;cursor:pointer;font-size:13px;font-weight:600;height:54px;padding:0 18px;letter-spacing:.02em;transition:color .15s,border-color .15s;white-space:nowrap;}
+  .tab:hover{color:#ccc;}
+  .tab.active{color:#fff;border-bottom-color:var(--gold);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
-/* ── Stats ── */
-.stats {
-  display: flex;
-  gap: 1px;
-  background: var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.stat {
-  flex: 1;
-  background: var(--surface);
-  padding: 16px 20px;
-  min-width: 120px;
-}
-.stat-label { font-size: 11px; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-.stat-value { font-size: 24px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
-.stat-value.green { color: var(--green); }
-.stat-value.red   { color: var(--red); }
-.stat-value.blue  { color: var(--blue); }
+  /* ── INVENTORY TAB ── */
+  .inv-toolbar{background:var(--white);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .inv-search-wrap{position:relative;flex:1;max-width:320px;}
+  .inv-search-wrap input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;height:34px;padding:0 10px 0 30px;outline:none;width:100%;}
+  .inv-search-wrap input:focus{border-color:var(--gold);}
+  .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--light);font-size:13px;pointer-events:none;}
+  .inv-count-badge{background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;color:var(--muted);padding:3px 12px;white-space:nowrap;}
+  .xlsx-btn{background:#1D6F42;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700;height:34px;letter-spacing:.04em;padding:0 16px;text-transform:uppercase;white-space:nowrap;transition:opacity .15s;}
+  .xlsx-btn:hover{opacity:.85;}
 
-/* ── Tabs ── */
-.tabs {
-  display: flex;
-  gap: 2px;
-  padding: 12px 24px 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
-.tab {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-2);
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  white-space: nowrap;
-  transition: color .15s;
-}
-.tab:hover { color: var(--text-1); }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(79,142,247,.2);
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  margin-left: 6px;
-}
-.badge.green { background: rgba(52,211,153,.2); color: var(--green); }
-.badge.red   { background: rgba(248,113,113,.2); color: var(--red); }
+  /* INVENTORY TABLE */
+  .inv-table-wrap{overflow:auto;max-height:calc(100vh - 54px - 58px - 42px);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{background:var(--bg);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 14px;text-align:left;position:sticky;top:0;z-index:5;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s;}
+  thead th:first-child{padding-left:16px;cursor:default;}
+  thead th.sortable:hover{color:var(--gold);}
+  thead th.sort-asc::after{content:" ▲";color:var(--gold);}
+  thead th.sort-desc::after{content:" ▼";color:var(--gold);}
+  thead tr.filter-row th{padding:4px 6px;background:var(--white);border-bottom:2px solid var(--border);cursor:default;position:sticky;top:37px;z-index:5;}
+  thead tr.filter-row th:first-child{padding:4px 16px;}
+  .col-filter{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;height:26px;padding:0 7px;outline:none;cursor:text;}
+  .col-filter:focus{border-color:var(--gold);background:var(--white);}
+  .col-filter::placeholder{color:var(--light);}
+  .col-filter-select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;height:26px;padding:0 4px;outline:none;cursor:pointer;min-width:0;}
+  .col-filter-select:focus{border-color:var(--gold);background:var(--white);}
+  th.filter-active .col-filter,th.filter-active .col-filter-select{border-color:var(--gold);background:#fffbf0;}
+  .toolbar-filter-group{display:flex;align-items:center;gap:6px;}
+  .toolbar-filter-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+  .toolbar-filter-select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;height:32px;padding:0 8px;outline:none;cursor:pointer;max-width:160px;}
+  .toolbar-filter-select:focus{border-color:var(--gold);}
+  .toolbar-filter-select.active{border-color:var(--gold);background:#fffbf0;color:var(--gold);font-weight:700;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+  tbody tr:hover{background:#FAFBFC;}
+  td{padding:10px 14px;vertical-align:middle;}
+  td:first-child{padding-left:16px;}
+  .td-name{font-weight:700;color:var(--text);font-size:13px;}
+  .td-sku{font-size:11px;font-weight:700;letter-spacing:.06em;font-family:monospace;color:var(--text);}
+  .td-stock-in{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green);border:1px solid var(--green-br);}
+  .td-stock-out{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid var(--red-br);}
+  .td-price{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .td-cat{font-size:12px;color:var(--muted);}
+  .td-link a{color:var(--gold);font-size:11px;font-weight:700;text-decoration:none;}
+  .td-link a:hover{text-decoration:underline;}
 
-/* ── Panels ── */
-.panel { display: none; padding: 20px 24px; }
-.panel.active { display: block; }
+  /* ── CHANGES / PRICE CHANGES TABS ── */
+  .picker-bar{background:var(--white);border-bottom:2px solid var(--border);padding:14px 20px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+  .picker-group{display:flex;flex-direction:column;gap:6px;}
+  .picker-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .picker-label span{font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;color:var(--light);}
+  select{background:var(--white);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;height:34px;padding:0 10px;outline:none;cursor:pointer;min-width:200px;max-width:300px;}
+  select:focus{border-color:var(--gold);}
+  .quick-wrap{display:flex;flex-direction:column;gap:6px;}
+  .quick-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .quick-btns{display:flex;gap:5px;flex-wrap:wrap;}
+  .qb{background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;height:28px;padding:0 12px;transition:all .15s;white-space:nowrap;}
+  .qb:hover,.qb.active{background:var(--gold);border-color:var(--gold);color:#fff;}
+  .run-btn{background:var(--gold);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;font-weight:700;height:34px;letter-spacing:.04em;padding:0 20px;text-transform:uppercase;white-space:nowrap;transition:opacity .15s;}
+  .run-btn:hover{opacity:.85;}
+  .chg-search-wrap{position:relative;margin-left:auto;}
+  .chg-search-wrap input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;height:34px;padding:0 10px 0 30px;outline:none;width:200px;}
+  .chg-search-wrap input:focus{border-color:var(--gold);}
 
-/* ── Toolbar ── */
-.toolbar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.toolbar input, .toolbar select {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-1);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s;
-}
-.toolbar input:focus, .toolbar select:focus { border-color: var(--accent); }
-.toolbar input { min-width: 220px; }
-.toolbar select { min-width: 160px; }
-.result-count { font-size: 12px; color: var(--text-3); margin-left: auto; }
-.btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-2);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all .15s;
-}
-.btn:hover { border-color: var(--accent); color: var(--text-1); }
+  /* STATS BAR */
+  .stats-bar{display:flex;background:var(--white);border-bottom:1px solid var(--border);}
+  .stat{flex:1;padding:12px 20px;border-right:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+  .stat:last-child{border-right:none;}
+  .stat-icon{font-size:20px;}
+  .stat-num{font-size:24px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+  .stat-num.green{color:var(--green);}
+  .stat-num.red{color:var(--red);}
+  .stat-num.gold{color:var(--gold);}
+  .stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+  .stat-sub{font-size:11px;color:var(--light);margin-top:1px;}
 
-/* ── Table ── */
-.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; }
-thead th {
-  background: var(--surface);
-  padding: 10px 14px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-}
-thead th:hover { color: var(--text-1); }
-tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,.03); }
-tbody td { padding: 10px 14px; vertical-align: middle; }
+  /* PANES (changes layout) */
+  .main{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px;min-height:calc(100vh - 54px - 92px - 58px);}
+  .pane{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
+  .pane-header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);}
+  .pane-title{font-size:13px;font-weight:700;color:var(--text);}
+  .pane-count{margin-left:auto;background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:700;padding:2px 10px;color:var(--muted);}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.green{background:var(--green);}
+  .dot.red{background:var(--red);}
+  .watch-list{flex:1;overflow-y:auto;padding:10px;}
+  .watch-card{background:var(--white);border:1px solid var(--border);border-radius:7px;margin-bottom:8px;padding:12px 14px;transition:border-color .15s,box-shadow .15s;}
+  .watch-card:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(184,137,42,.1);}
+  .card-top{display:flex;align-items:flex-start;gap:10px;justify-content:space-between;}
+  .card-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.3;}
+  .card-price{font-size:14px;font-weight:800;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .card-meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;}
+  .card-cat{font-size:12px;color:var(--muted);}
+  .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+  .badge-added{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.03em;background:var(--green-bg);color:var(--green);border:1px solid var(--green-br);}
+  .badge-sold{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.03em;background:var(--red-bg);color:var(--red);border:1px solid var(--red-br);}
+  .card-link{color:var(--gold);font-size:11px;font-weight:700;text-decoration:none;}
+  .card-link:hover{text-decoration:underline;}
 
-.brand-chip {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-  letter-spacing: .2px;
-}
-.bc-rolex       { background: rgba(218,165,32,.15); color: #d4a422; border: 1px solid rgba(218,165,32,.25); }
-.bc-patek       { background: rgba(100,149,237,.15); color: #7aabf0; border: 1px solid rgba(100,149,237,.25); }
-.bc-ap          { background: rgba(160,82,45,.15); color: #c8956a; border: 1px solid rgba(160,82,45,.25); }
-.bc-omega       { background: rgba(70,130,180,.15); color: #6aabda; border: 1px solid rgba(70,130,180,.25); }
-.bc-cartier     { background: rgba(183,28,28,.15); color: #ef6a6a; border: 1px solid rgba(183,28,28,.25); }
-.bc-vacheron    { background: rgba(46,125,50,.15); color: #6abf6e; border: 1px solid rgba(46,125,50,.25); }
-.bc-panerai     { background: rgba(230,81,0,.15); color: #f09050; border: 1px solid rgba(230,81,0,.25); }
-.bc-hublot      { background: rgba(55,71,79,.2); color: #90a4ae; border: 1px solid rgba(55,71,79,.3); }
-.bc-tudor       { background: rgba(183,28,28,.12); color: #e57373; border: 1px solid rgba(183,28,28,.2); }
-.bc-breitling   { background: rgba(0,96,100,.15); color: #4db6ac; border: 1px solid rgba(0,96,100,.25); }
-.bc-iwc         { background: rgba(40,53,147,.15); color: #7986cb; border: 1px solid rgba(40,53,147,.25); }
-.bc-jlc         { background: rgba(74,20,140,.15); color: #b39ddb; border: 1px solid rgba(74,20,140,.25); }
-.bc-other       { background: rgba(79,142,247,.1); color: var(--accent); border: 1px solid rgba(79,142,247,.2); }
+  /* EMPTY */
+  .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);padding:40px 20px;text-align:center;gap:8px;}
+  .empty-icon{font-size:36px;opacity:.35;}
+  .empty-title{font-size:14px;font-weight:600;color:var(--muted);}
+  .empty-sub{font-size:12px;color:var(--light);max-width:260px;line-height:1.5;}
 
-.model-ref { font-size: 13px; color: var(--text-1); max-width: 340px; }
-.price-cell { font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
-.price-null { color: var(--text-3); }
-.avail-yes { color: var(--green); font-size: 12px; }
-.avail-no  { color: var(--red); font-size: 12px; }
-.price-up   { color: var(--red); font-weight: 600; }
-.price-down { color: var(--green); font-weight: 600; }
-.prev-price { color: var(--text-3); text-decoration: line-through; }
-.section-heading {
-  font-size: 13px;
-  font-weight: 600;
-  margin: 20px 0 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.count {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background: rgba(255,255,255,.08);
-}
-.count-green { background: rgba(52,211,153,.15); color: var(--green); }
-.count-red   { background: rgba(248,113,113,.15); color: var(--red); }
-.count-blue  { background: rgba(96,165,250,.15); color: var(--blue); }
+  /* OVERLAY */
+  .overlay{position:fixed;inset:0;z-index:200;background:rgba(240,242,245,.96);display:flex;align-items:center;justify-content:center;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .load-box{background:var(--white);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,.12);padding:40px 48px;max-width:460px;width:90%;text-align:center;}
+  .load-box .icon{font-size:48px;margin-bottom:14px;}
+  .load-box h2{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px;}
+  .load-box p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
 
-/* ── Empty / loading / error states ── */
-.empty { text-align: center; padding: 60px 20px; }
-.empty-icon { font-size: 36px; margin-bottom: 12px; }
-.loading-wrap, .error-wrap { text-align: center; padding: 80px 20px; }
-.spinner {
-  display: inline-block;
-  width: 36px; height: 36px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  margin-bottom: 16px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.error-icon { font-size: 36px; margin-bottom: 12px; }
-.error-msg { color: var(--red); font-size: 14px; }
-
-@media (max-width: 640px) {
-  .stats { flex-wrap: wrap; }
-  .stat { min-width: 50%; }
-  .panel { padding: 16px; }
-  .toolbar input { min-width: 100%; }
-}
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1D23;color:#fff;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:opacity .3s;z-index:300;}
+  .toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <div class="logo">BLW <span>Tracker</span></div>
-    <span class="badge-live">LIVE</span>
-  </div>
-  <div class="last-updated" id="lastUpdated">Loading…</div>
-</div>
-
-<div class="stats">
-  <div class="stat">
-    <div class="stat-label">Total Listings</div>
-    <div class="stat-value" id="sTotal">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Brands</div>
-    <div class="stat-value blue" id="sBrands">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Total Value</div>
-    <div class="stat-value" id="sValue">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Avg Price</div>
-    <div class="stat-value" id="sAvg">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">New In</div>
-    <div class="stat-value green" id="sNew">—</div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Sold / Out</div>
-    <div class="stat-value red" id="sSold">—</div>
-  </div>
-</div>
-
-<div class="tabs">
-  <button class="tab active" data-panel="inventory" onclick="switchTab(this)">
-    Inventory <span class="badge" id="badgeInv">—</span>
-  </button>
-  <button class="tab" data-panel="changes" onclick="switchTab(this)">
-    Changes <span class="badge" id="badgeChanges">0</span>
-  </button>
-  <button class="tab" data-panel="prices" onclick="switchTab(this)">
-    Price Changes <span class="badge" id="badgePrice">0</span>
-  </button>
-</div>
-
-<!-- ── Inventory panel ── -->
-<div class="panel active" id="panel-inventory">
-  <div class="toolbar">
-    <input id="searchInput" placeholder="Search model, brand, tags…" oninput="applyFilters()">
-    <select id="brandFilter" onchange="applyFilters()"><option value="">All Brands</option></select>
-    <select id="priceFilter" onchange="applyFilters()">
-      <option value="">Any Price</option>
-      <option value="0-5000">Under $5K</option>
-      <option value="5000-15000">$5K – $15K</option>
-      <option value="15000-30000">$15K – $30K</option>
-      <option value="30000-9999999">$30K+</option>
-    </select>
-    <select id="sortSel" onchange="applyFilters()">
-      <option value="brand|asc">Brand A→Z</option>
-      <option value="price|desc">Price High→Low</option>
-      <option value="price|asc">Price Low→High</option>
-      <option value="title|asc">Title A→Z</option>
-    </select>
-    <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
-    <span class="result-count" id="resultCount"></span>
-  </div>
-
-  <div id="loadingState" class="loading-wrap">
-    <div class="spinner"></div>
-    <div style="color:var(--text-2)">Loading inventory…</div>
-  </div>
-  <div id="errorState" class="error-wrap" hidden>
-    <div class="error-icon">⚠️</div>
-    <div class="error-msg" id="errorMsg"></div>
-  </div>
-  <div id="tableWrap" hidden>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th onclick="clickSort('brand')">Brand</th>
-            <th onclick="clickSort('title')">Model / Reference</th>
-            <th onclick="clickSort('price')">Price</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="invBody"></tbody>
-      </table>
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="load-box">
+    <div class="icon">⌚</div>
+    <h2>BLW Inventory Tracker</h2>
+    <div id="overlay-loading" style="text-align:center;">
+      <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:16px auto;"></div>
+      <p style="color:var(--muted);font-size:13px;">Loading latest inventory data…</p>
+    </div>
+    <div id="overlay-error" style="display:none;">
+      <p style="color:var(--red);font-size:13px;margin-bottom:16px;" id="overlay-error-msg"></p>
     </div>
   </div>
 </div>
 
-<!-- ── Changes panel ── -->
-<div class="panel" id="panel-changes">
-  <div id="changesContent"><div class="empty"><div class="empty-icon">📋</div><p style="color:var(--text-3)">Loading…</p></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <span class="logo-name">Birmingham Luxury Watches<span class="logo-tag">Inventory Tracker</span></span>
+  <button class="tab active" data-tab="inventory">📦 &nbsp;Current Inventory</button>
+  <button class="tab" data-tab="changes">🔄 &nbsp;Changes / Sold</button>
+  <button class="tab" data-tab="pricechanges">💲 &nbsp;Price Changes</button>
 </div>
 
-<!-- ── Price Changes panel ── -->
-<div class="panel" id="panel-prices">
-  <div id="priceContent"><div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">Loading…</p></div></div>
+<!-- ═══════════════════════════════════════════════════
+     TAB 1 — CURRENT INVENTORY
+════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-inventory">
+  <div class="inv-toolbar">
+    <div class="inv-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="inv-search" placeholder="Search name, brand…">
+    </div>
+    <div class="toolbar-filter-group">
+      <span class="toolbar-filter-label">Brand</span>
+      <select class="toolbar-filter-select" id="dd-brand"><option value="">All Brands</option></select>
+    </div>
+    <div class="toolbar-filter-group">
+      <span class="toolbar-filter-label">Price</span>
+      <select class="toolbar-filter-select" id="dd-price"><option value="">All Prices</option></select>
+    </div>
+    <div class="toolbar-filter-group">
+      <span class="toolbar-filter-label">Stock</span>
+      <select class="toolbar-filter-select" id="dd-stock">
+        <option value="">All Status</option>
+        <option value="in">In Stock</option>
+        <option value="out">Out of Stock</option>
+      </select>
+    </div>
+    <span class="inv-count-badge" id="inv-count">— watches</span>
+    <button class="xlsx-btn" onclick="exportInventoryCsv()">⬇ Export CSV</button>
+  </div>
+  <div class="inv-table-wrap">
+    <table id="inv-table">
+      <thead>
+        <tr>
+          <th class="sortable" data-col="brand">Brand</th>
+          <th class="sortable" data-col="title">Model / Reference</th>
+          <th class="sortable" data-col="price">Price</th>
+          <th class="sortable" data-col="available">Stock Status</th>
+          <th></th>
+        </tr>
+        <tr class="filter-row">
+          <th><select class="col-filter-select" id="cf-brand" data-col="brand"><option value="">All</option></select></th>
+          <th><input class="col-filter" data-col="title" placeholder="Filter…"></th>
+          <th><input class="col-filter" data-col="price" placeholder="Filter…"></th>
+          <th><select class="col-filter-select" id="cf-stock" data-col="available"><option value="">All</option><option value="in">In Stock</option><option value="out">Out of Stock</option></select></th>
+          <th><button id="clear-filters" title="Clear all filters" style="background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:10px;height:26px;padding:0 8px;white-space:nowrap;">✕ Clear All</button></th>
+        </tr>
+      </thead>
+      <tbody id="inv-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 2 — CHANGES
+════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-changes">
+  <div class="picker-bar">
+    <div class="picker-group">
+      <div class="picker-label">From snapshot <span id="from-sub"></span></div>
+      <select id="sel-from"></select>
+    </div>
+    <div class="picker-group">
+      <div class="picker-label">To snapshot <span id="to-sub"></span></div>
+      <select id="sel-to"></select>
+    </div>
+    <div class="quick-wrap">
+      <div class="quick-label">Quick compare</div>
+      <div class="quick-btns">
+        <button class="qb chg-qb" data-q="last2">Last 2 snapshots</button>
+        <button class="qb chg-qb" data-q="today">Since midnight</button>
+        <button class="qb chg-qb" data-q="2h">Last 2 hrs</button>
+        <button class="qb chg-qb" data-q="24h">Last 24 hrs</button>
+        <button class="qb chg-qb" data-q="7d">Last 7 days</button>
+        <button class="qb chg-qb" data-q="all">All time</button>
+      </div>
+    </div>
+    <button class="run-btn" id="run-btn">Run Report</button>
+    <div class="chg-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="chg-search" placeholder="Search name, brand…">
+    </div>
+    <button class="xlsx-btn" onclick="exportChangesCsv()">⬇ Export CSV</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-icon">🟢</div><div><div class="stat-num green" id="stat-added">—</div><div class="stat-lbl">New / Back In Stock</div><div class="stat-sub" id="stat-added-sub">run a report</div></div></div>
+    <div class="stat"><div class="stat-icon">🔴</div><div><div class="stat-num red" id="stat-sold">—</div><div class="stat-lbl">Sold / Removed</div><div class="stat-sub" id="stat-sold-sub">run a report</div></div></div>
+    <div class="stat"><div class="stat-icon">📦</div><div><div class="stat-num gold" id="stat-total">—</div><div class="stat-lbl">In Stock Now</div><div class="stat-sub" id="stat-total-sub">as of "to" snapshot</div></div></div>
+    <div class="stat"><div class="stat-icon">📸</div><div><div class="stat-num gold" id="stat-snaps">—</div><div class="stat-lbl">Total Snapshots</div><div class="stat-sub" id="stat-snaps-sub">in history.json</div></div></div>
+  </div>
+
+  <div class="main">
+    <div class="pane">
+      <div class="pane-header"><div class="dot green"></div><span class="pane-title">New Arrivals / Back In Stock</span><span class="pane-count" id="count-added">—</span></div>
+      <div class="watch-list" id="list-added"><div class="empty-state"><div class="empty-icon">🟢</div><div class="empty-title">Waiting for data</div><div class="empty-sub">Pick two snapshots and click Run Report</div></div></div>
+    </div>
+    <div class="pane">
+      <div class="pane-header"><div class="dot red"></div><span class="pane-title">Sold / Removed</span><span class="pane-count" id="count-sold">—</span></div>
+      <div class="watch-list" id="list-sold"><div class="empty-state"><div class="empty-icon">🔴</div><div class="empty-title">Waiting for data</div><div class="empty-sub">Pick two snapshots and click Run Report</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 3 — PRICE CHANGES
+════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-pricechanges">
+  <div class="picker-bar">
+    <div class="picker-group">
+      <div class="picker-label">From snapshot <span id="pc-from-sub"></span></div>
+      <select id="pc-sel-from"></select>
+    </div>
+    <div class="picker-group">
+      <div class="picker-label">To snapshot <span id="pc-to-sub"></span></div>
+      <select id="pc-sel-to"></select>
+    </div>
+    <div class="quick-wrap">
+      <div class="quick-label">Quick compare</div>
+      <div class="quick-btns">
+        <button class="qb pc-qb" data-q="last2">Last 2 snapshots</button>
+        <button class="qb pc-qb" data-q="today">Since midnight</button>
+        <button class="qb pc-qb" data-q="2h">Last 2 hrs</button>
+        <button class="qb pc-qb" data-q="24h">Last 24 hrs</button>
+        <button class="qb pc-qb" data-q="7d">Last 7 days</button>
+        <button class="qb pc-qb" data-q="all">All time</button>
+      </div>
+    </div>
+    <button class="run-btn" id="pc-run-btn">Run Report</button>
+    <div class="chg-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="pc-search" placeholder="Search name, brand…">
+    </div>
+    <button class="xlsx-btn" onclick="exportPriceChangesCsv()">⬇ Export CSV</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-icon">📈</div><div><div class="stat-num green" id="pc-stat-up">—</div><div class="stat-lbl">Price Increases</div><div class="stat-sub" id="pc-stat-up-sub">run a report</div></div></div>
+    <div class="stat"><div class="stat-icon">📉</div><div><div class="stat-num red" id="pc-stat-down">—</div><div class="stat-lbl">Price Decreases</div><div class="stat-sub" id="pc-stat-down-sub">run a report</div></div></div>
+    <div class="stat"><div class="stat-icon">💲</div><div><div class="stat-num gold" id="pc-stat-avg">—</div><div class="stat-lbl">Avg Change</div><div class="stat-sub" id="pc-stat-avg-sub">across changed watches</div></div></div>
+    <div class="stat"><div class="stat-icon">📦</div><div><div class="stat-num gold" id="pc-stat-total">—</div><div class="stat-lbl">Watches Compared</div><div class="stat-sub" id="pc-stat-total-sub">in both snapshots</div></div></div>
+  </div>
+
+  <div class="inv-toolbar">
+    <div class="inv-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="pc-search2" placeholder="Search name, brand…">
+    </div>
+    <div class="toolbar-filter-group">
+      <span class="toolbar-filter-label">Direction</span>
+      <select class="toolbar-filter-select" id="pc-dd-direction">
+        <option value="">All Changes</option>
+        <option value="up">Price Increases</option>
+        <option value="down">Price Decreases</option>
+      </select>
+    </div>
+    <div class="toolbar-filter-group">
+      <span class="toolbar-filter-label">Brand</span>
+      <select class="toolbar-filter-select" id="pc-dd-brand"><option value="">All Brands</option></select>
+    </div>
+    <span class="inv-count-badge" id="pc-count">— changes</span>
+  </div>
+
+  <div class="inv-table-wrap">
+    <table id="pc-table">
+      <thead>
+        <tr>
+          <th class="sortable" data-col="title">Watch</th>
+          <th class="sortable" data-col="brand">Brand</th>
+          <th class="sortable" data-col="oldPrice">Old Price</th>
+          <th class="sortable" data-col="newPrice">New Price</th>
+          <th class="sortable" data-col="changeAmt">Change ($)</th>
+          <th class="sortable" data-col="changePct">Change (%)</th>
+          <th></th>
+        </tr>
+        <tr class="filter-row">
+          <th><input class="col-filter pc-col-filter" data-col="title" placeholder="Filter…"></th>
+          <th><select class="col-filter-select pc-cf-select" id="pc-cf-brand" data-col="brand"><option value="">All</option></select></th>
+          <th></th><th></th><th></th><th></th>
+          <th><button id="pc-clear-filters" title="Clear all filters" style="background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:10px;height:26px;padding:0 8px;white-space:nowrap;">✕ Clear All</button></th>
+        </tr>
+      </thead>
+      <tbody id="pc-table-body">
+        <tr><td colspan="7" style="padding:40px;text-align:center;color:var(--muted);">Pick two snapshots and click Run Report to see price changes.</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const HISTORY_URL = 'https://raw.githubusercontent.com/CHRISEVO24/blw-tracker/main/history.json';
-const SNAP_KEY    = 'blwTP_snap_v1';
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let all = [], filtered = [], prevSnap = null;
-let sortKey = 'brand', sortDir = 'asc';
+let HISTORY = null;
+let KEYS    = [];
+let LATEST_SNAP = {};
+let filtered    = [];
+let sortCol     = "brand", sortDir = "asc";
+let colFilters  = {};
+let ddFilters   = {};
+let lastAdded   = [], lastSold = [];
+let pcAllChanges = [], pcFiltered = [];
+let pcSortCol = "changePct", pcSortDir = "desc";
+let pcColFilters = {}, pcDdFilters = {};
 
-// ── Brand → CSS class ─────────────────────────────────────────────────────────
-const BRAND_MAP = {
-  rolex: 'bc-rolex', 'patek philippe': 'bc-patek', omega: 'bc-omega',
-  cartier: 'bc-cartier', tudor: 'bc-tudor', panerai: 'bc-panerai',
-  hublot: 'bc-hublot', breitling: 'bc-breitling', iwc: 'bc-iwc',
-  'jaeger-lecoultre': 'bc-jlc', 'jaeger lecoultre': 'bc-jlc',
-  'vacheron constantin': 'bc-vacheron',
-};
-function bc(brand) {
-  return BRAND_MAP[(brand||'').toLowerCase()] || 'bc-other';
-}
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
 
-function fmt(n) {
-  if (!n) return '—';
-  return n >= 1000000 ? '$' + (n/1000000).toFixed(1) + 'M' : '$' + (n/1000).toFixed(0) + 'K';
-}
-
-// ── Load ──────────────────────────────────────────────────────────────────────
-async function loadData() {
+// ── Load history ──────────────────────────────────────────────────────────────
+async function autoLoad() {
   try {
-    // Load previous snapshot from localStorage
-    try {
-      const stored = localStorage.getItem(SNAP_KEY);
-      if (stored) prevSnap = JSON.parse(stored);
-    } catch {}
-
-    const res = await fetch(HISTORY_URL + '?t=' + Date.now());
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const history = await res.json();
-
-    const keys = Object.keys(history).sort();
-    if (!keys.length) throw new Error('No snapshots yet — run the scraper first.');
-
-    const latestKey  = keys[keys.length - 1];
-    const latestSnap = history[latestKey];
-
-    // Save current as new "previous" for next load
-    try { localStorage.setItem(SNAP_KEY, JSON.stringify({ ts: latestKey, items: Object.values(latestSnap) })); } catch {}
-
-    all = Object.values(latestSnap);
-
-    document.getElementById('lastUpdated').textContent = 'Last scraped: ' + latestKey + ' ET';
-    document.getElementById('loadingState').hidden = true;
-    document.getElementById('tableWrap').hidden = false;
-
-    updateStats();
-    buildBrandFilter();
-    applyFilters();
-    renderChanges();
-    renderPriceChanges();
-
+    const res = await fetch(HISTORY_URL + "?t=" + Date.now());
+    if (!res.ok) throw new Error("history.json not found (" + res.status + ")");
+    HISTORY = await res.json();
+    init();
   } catch (e) {
-    document.getElementById('loadingState').hidden = true;
-    document.getElementById('errorState').hidden = false;
-    document.getElementById('errorMsg').textContent = 'Error: ' + e.message;
+    document.getElementById("overlay-loading").style.display = "none";
+    document.getElementById("overlay-error").style.display  = "block";
+    document.getElementById("overlay-error-msg").textContent = "Could not load: " + e.message;
   }
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
-function updateStats() {
-  const priced  = all.filter(i => i.price);
-  const total   = priced.reduce((s, i) => s + i.price, 0);
-  const brands  = new Set(all.map(i => i.brand)).size;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
 
-  document.getElementById('sTotal').textContent  = all.length;
-  document.getElementById('sBrands').textContent = brands;
-  document.getElementById('sValue').textContent  = fmt(total);
-  document.getElementById('sAvg').textContent    = priced.length ? '$' + Math.round(total / priced.length).toLocaleString() : '—';
-  document.getElementById('badgeInv').textContent = all.length;
+// ── Init ──────────────────────────────────────────────────────────────────────
+function init() {
+  document.getElementById("overlay").style.display = "none";
+  KEYS = Object.keys(HISTORY).sort();
+  LATEST_SNAP = HISTORY[KEYS[KEYS.length - 1]] || {};
 
-  if (prevSnap?.items) {
-    const prev = new Set(prevSnap.items.map(i => i.id));
-    const cur  = new Set(all.map(i => i.id));
-    const nNew  = all.filter(i => !prev.has(i.id)).length;
-    const nSold = prevSnap.items.filter(i => !cur.has(i.id)).length;
-    document.getElementById('sNew').textContent  = '+' + nNew;
-    document.getElementById('sSold').textContent = nSold;
-    document.getElementById('badgeChanges').textContent = nNew + nSold;
+  // Snapshot count
+  document.getElementById("stat-snaps").textContent     = KEYS.length;
+  document.getElementById("stat-snaps-sub").textContent  = KEYS.length > 1
+    ? KEYS[0] + " → " + KEYS[KEYS.length-1] : KEYS[0] || "—";
+
+  // Inventory tab
+  renderInventory(Object.values(LATEST_SNAP));
+
+  // Changes tab
+  populateSelects();
+  setFromTo(KEYS[0], KEYS[KEYS.length-1]);
+  runReport();
+
+  // Price Changes tab
+  pcPopulateSelects();
+  pcSetFromTo(KEYS[0], KEYS[KEYS.length-1]);
+  pcRunReport();
+
+  toast("✓ Loaded " + KEYS.length + " snapshot" + (KEYS.length !== 1 ? "s" : "") +
+        " · " + Object.keys(LATEST_SNAP).length + " watches");
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function x(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function fmtPrice(n) {
+  if (!n) return "—";
+  return "$" + Number(n).toLocaleString();
+}
+
+function fmtKey(k) {
+  if (!k) return "—";
+  // Key format: "2026-09-22 18:02" ET
+  const [dp, tp] = k.split(" ");
+  if (!dp || !tp) return k;
+  const [y,m,d] = dp.split("-").map(Number);
+  const [hh,mm] = tp.split(":").map(Number);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const ampm = hh >= 12 ? "PM" : "AM", h12 = hh % 12 || 12;
+  return months[m-1] + " " + d + "  ·  " + h12 + ":" + String(mm).padStart(2,"0") + " " + ampm + " ET";
+}
+
+function keyToMs(k) {
+  return new Date(k.replace(" ","T") + ":00").getTime();
+}
+
+function keyMinusMins(lastKey, mins) {
+  const target = keyToMs(lastKey) - mins * 60000;
+  for (const k of KEYS) if (keyToMs(k) >= target) return k;
+  return KEYS[0];
+}
+
+function snapCount(k) {
+  return HISTORY[k] ? Object.keys(HISTORY[k]).length + " watches" : "";
+}
+
+// ── INVENTORY TAB ─────────────────────────────────────────────────────────────
+function renderInventory(products) {
+  colFilters = {}; ddFilters = {};
+  sortCol = "brand"; sortDir = "asc";
+  populateInvDropdowns(products);
+  applyFiltersAndSort(products);
+}
+
+function populateInvDropdowns(products) {
+  const brands = [...new Set(products.map(p => p.brand || "").filter(Boolean))].sort();
+  const prices = products.map(p => p.price || 0).filter(n => n > 0);
+  const priceRanges = [
+    { label:"Under $5,000",       min:0,      max:4999 },
+    { label:"$5,000 – $10,000",   min:5000,   max:10000 },
+    { label:"$10,000 – $25,000",  min:10001,  max:25000 },
+    { label:"$25,000 – $50,000",  min:25001,  max:50000 },
+    { label:"$50,000 – $100,000", min:50001,  max:100000 },
+    { label:"Over $100,000",      min:100001, max:Infinity },
+  ].filter(r => prices.some(p => p >= r.min && p <= r.max));
+
+  fillSelect("dd-brand", brands, "All Brands");
+  fillSelect("cf-brand", brands, "All");
+  fillSelectOptions("dd-price", priceRanges.map(r => ({ value: r.min+"|"+r.max, label: r.label })), "All Prices");
+}
+
+function fillSelect(id, values, placeholder) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<option value="">${x(placeholder)}</option>` +
+    values.map(v => `<option value="${x(v)}">${x(v)}</option>`).join("");
+}
+
+function fillSelectOptions(id, options, placeholder) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<option value="">${x(placeholder)}</option>` +
+    options.map(o => `<option value="${x(o.value)}">${x(o.label)}</option>`).join("");
+}
+
+function applyFiltersAndSort(source) {
+  let all = source || Object.values(LATEST_SNAP);
+
+  // Brand toolbar dropdown
+  const ddBrand = ddFilters["brand"] || "";
+  if (ddBrand) all = all.filter(w => (w.brand || "") === ddBrand);
+
+  // Price range toolbar dropdown
+  const ddPrice = ddFilters["price"] || "";
+  if (ddPrice) {
+    const [min, max] = ddPrice.split("|").map(Number);
+    all = all.filter(w => { const p = w.price || 0; return p >= min && p <= max; });
   }
-}
 
-// ── Filters ───────────────────────────────────────────────────────────────────
-function buildBrandFilter() {
-  const brands = [...new Set(all.map(i => i.brand))].sort();
-  const sel = document.getElementById('brandFilter');
-  sel.innerHTML = '<option value="">All Brands</option>';
-  brands.forEach(b => {
-    const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
-  });
-}
+  // Stock toolbar dropdown
+  const ddStock = ddFilters["stock"] || "";
+  if (ddStock === "in")  all = all.filter(w => w.available);
+  if (ddStock === "out") all = all.filter(w => !w.available);
 
-function applyFilters() {
-  const q     = document.getElementById('searchInput').value.toLowerCase();
-  const brand = document.getElementById('brandFilter').value;
-  const prR   = document.getElementById('priceFilter').value;
-  const [sk, sd] = document.getElementById('sortSel').value.split('|');
-  sortKey = sk; sortDir = sd;
+  // Column brand filter
+  const cfBrand = ddFilters["cf-brand"] || "";
+  if (cfBrand) all = all.filter(w => (w.brand || "") === cfBrand);
 
-  filtered = all.filter(item => {
-    if (brand && item.brand !== brand) return false;
-    if (prR) {
-      const [lo, hi] = prR.split('-').map(Number);
-      if (!item.price || item.price < lo || item.price > hi) return false;
-    }
-    if (q) {
-      const hay = (item.title + ' ' + item.brand + ' ' + (item.tags || '')).toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  // Column stock filter
+  const cfStock = ddFilters["cf-stock"] || "";
+  if (cfStock === "in")  all = all.filter(w => w.available);
+  if (cfStock === "out") all = all.filter(w => !w.available);
 
+  // Column text filters
+  all = all.filter(w => Object.entries(colFilters).every(([col, q]) => {
+    if (!q) return true;
+    if (col === "price") return String(w.price || "").includes(q.replace(/[$,]/g,""));
+    return String(w[col] || "").toLowerCase().includes(q.toLowerCase());
+  }));
+
+  // Global search
+  const globalQ = document.getElementById("inv-search").value.trim().toLowerCase();
+  if (globalQ) {
+    all = all.filter(w =>
+      [w.title, w.brand, w.tags || ""].join(" ").toLowerCase().includes(globalQ)
+    );
+  }
+
+  filtered = all;
+
+  // Sort
   filtered.sort((a, b) => {
-    let av = a[sk], bv = b[sk];
-    if (sk === 'price') { av = av || 0; bv = bv || 0; return sd === 'desc' ? bv - av : av - bv; }
-    const c = String(av || '').localeCompare(String(bv || ''));
-    return sd === 'desc' ? -c : c;
+    if (sortCol === "price") {
+      const av = a.price || 0, bv = b.price || 0;
+      return sortDir === "asc" ? av - bv : bv - av;
+    }
+    if (sortCol === "available") {
+      return sortDir === "asc"
+        ? (b.available ? 1 : 0) - (a.available ? 1 : 0)
+        : (a.available ? 1 : 0) - (b.available ? 1 : 0);
+    }
+    const av = String(a[sortCol] || "").toLowerCase();
+    const bv = String(b[sortCol] || "").toLowerCase();
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ?  1 : -1;
+    return 0;
   });
 
-  renderTable();
-  document.getElementById('resultCount').textContent = filtered.length + ' of ' + all.length + ' listings';
+  document.getElementById("inv-count").textContent = filtered.length + " watches";
+  refreshInvTable();
+  updateInvSortHeaders();
 }
 
-function clickSort(key) {
-  const sel = document.getElementById('sortSel');
-  const [ck, cd] = sel.value.split('|');
-  sel.value = key + '|' + (ck === key && cd === 'asc' ? 'desc' : 'asc');
-  applyFilters();
+function updateInvSortHeaders() {
+  document.querySelectorAll("#inv-table thead th.sortable").forEach(th => {
+    th.classList.remove("sort-asc","sort-desc");
+    if (th.dataset.col === sortCol) th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+  });
 }
 
-// ── Render table ──────────────────────────────────────────────────────────────
-function renderTable() {
-  const tbody = document.getElementById('invBody');
+function refreshInvTable() {
+  const tbody = document.getElementById("inv-body");
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-3)">No items match your filters</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:40px;text-align:center;color:var(--muted);">No watches match the current filters.</td></tr>`;
     return;
   }
-  tbody.innerHTML = filtered.map(i => `
-    <tr>
-      <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
-      <td class="model-ref"><a href="${i.url}" target="_blank" style="color:var(--text-1);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-1)'">${esc(i.title)}</a></td>
-      <td>${i.price ? `<span class="price-cell">$${i.price.toLocaleString()}</span>` : '<span class="price-null">—</span>'}</td>
-      <td>${i.available ? '<span class="avail-yes">● In Stock</span>' : '<span class="avail-no">○ Unavailable</span>'}</td>
-    </tr>`).join('');
+  tbody.innerHTML = filtered.map(w => `<tr>
+    <td class="td-cat">${x(w.brand || "—")}</td>
+    <td><div class="td-name">${x(w.title)}</div></td>
+    <td class="td-price">${w.price ? fmtPrice(w.price) : '<span style="color:var(--muted)">—</span>'}</td>
+    <td>${w.available ? '<span class="td-stock-in">● In Stock</span>' : '<span class="td-stock-out">● Out of Stock</span>'}</td>
+    <td class="td-link"><a href="${x(w.url)}" target="_blank">View →</a></td>
+  </tr>`).join("");
 }
 
-// ── Changes ───────────────────────────────────────────────────────────────────
-function renderChanges() {
-  const el = document.getElementById('changesContent');
-  if (!prevSnap?.items) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p style="color:var(--text-3)">No previous snapshot. Reload after the next scrape to see changes.</p></div>';
+// Toolbar dropdowns
+["dd-brand","dd-price","dd-stock"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("change", () => {
+    const key = id.replace("dd-","");
+    ddFilters[key] = el.value;
+    el.classList.toggle("active", !!el.value);
+    applyFiltersAndSort();
+  });
+});
+
+// Column header sort
+document.querySelectorAll("#inv-table thead th.sortable").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.col;
+    if (sortCol === col) sortDir = sortDir === "asc" ? "desc" : "asc";
+    else { sortCol = col; sortDir = "asc"; }
+    applyFiltersAndSort();
+  });
+});
+
+// Column text filters
+document.querySelectorAll("#inv-table .col-filter").forEach(input => {
+  input.addEventListener("input", () => {
+    colFilters[input.dataset.col] = input.value.trim();
+    input.closest("th")?.classList.toggle("filter-active", !!input.value.trim());
+    applyFiltersAndSort();
+  });
+  input.addEventListener("click", e => e.stopPropagation());
+});
+
+// Column select filters
+["cf-brand","cf-stock"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("change", () => {
+    ddFilters[id] = el.value;
+    el.closest("th")?.classList.toggle("filter-active", !!el.value);
+    applyFiltersAndSort();
+  });
+});
+
+// Global search
+document.getElementById("inv-search").addEventListener("input", () => applyFiltersAndSort());
+
+// Clear filters
+document.getElementById("clear-filters").addEventListener("click", () => {
+  colFilters = {}; ddFilters = {};
+  document.querySelectorAll("#inv-table .col-filter").forEach(i => {
+    i.value = ""; i.closest("th")?.classList.remove("filter-active");
+  });
+  ["cf-brand","cf-stock"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ""; el.closest("th")?.classList.remove("filter-active"); }
+  });
+  ["dd-brand","dd-price","dd-stock"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ""; el.classList.remove("active"); }
+  });
+  document.getElementById("inv-search").value = "";
+  applyFiltersAndSort();
+});
+
+// ── CHANGES TAB ───────────────────────────────────────────────────────────────
+function populateSelects() {
+  const fromSel = document.getElementById("sel-from");
+  const toSel   = document.getElementById("sel-to");
+  fromSel.innerHTML = toSel.innerHTML = "";
+  KEYS.forEach(k => {
+    const label = fmtKey(k);
+    fromSel.insertAdjacentHTML("beforeend", `<option value="${k}">${label}</option>`);
+    toSel.insertAdjacentHTML("beforeend",   `<option value="${k}">${label}</option>`);
+  });
+  fromSel.value = KEYS[0];
+  toSel.value   = KEYS[KEYS.length-1];
+  updateSubLabels();
+}
+
+function setFromTo(from, to) {
+  document.getElementById("sel-from").value = from;
+  document.getElementById("sel-to").value   = to;
+  updateSubLabels();
+}
+
+function updateSubLabels() {
+  document.getElementById("from-sub").textContent = snapCount(document.getElementById("sel-from").value);
+  document.getElementById("to-sub").textContent   = snapCount(document.getElementById("sel-to").value);
+}
+
+document.getElementById("sel-from").addEventListener("change", updateSubLabels);
+document.getElementById("sel-to").addEventListener("change", updateSubLabels);
+
+document.querySelectorAll(".chg-qb").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".chg-qb").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const q = btn.dataset.q, last = KEYS[KEYS.length-1];
+    let from = KEYS[0];
+    if      (q === "last2") from = KEYS[Math.max(0, KEYS.length-2)];
+    else if (q === "today") { const p = last.slice(0,10); from = KEYS.find(k => k.startsWith(p)) || last; }
+    else if (q === "2h")    from = keyMinusMins(last, 120);
+    else if (q === "24h")   from = keyMinusMins(last, 1440);
+    else if (q === "7d")    from = keyMinusMins(last, 10080);
+    setFromTo(from, last);
+    runReport();
+  });
+});
+
+document.getElementById("run-btn").addEventListener("click", runReport);
+document.getElementById("chg-search").addEventListener("input", applyChgSearch);
+
+function runReport() {
+  if (!HISTORY) return;
+  const fromKey  = document.getElementById("sel-from").value;
+  const toKey    = document.getElementById("sel-to").value;
+  const fromSnap = HISTORY[fromKey] || {};
+  const toSnap   = HISTORY[toKey]   || {};
+
+  // Added: in toSnap but not fromSnap, or was unavailable in from and now available
+  lastAdded = Object.values(toSnap).filter(w => {
+    const old = fromSnap[w.id];
+    if (!old) return w.available !== false;
+    return !old.available && w.available !== false;
+  });
+
+  // Sold/removed: was in fromSnap and available, now gone or unavailable
+  lastSold = Object.values(fromSnap).filter(w => {
+    if (w.available === false) return false;
+    const cur = toSnap[w.id];
+    return !cur || cur.available === false;
+  });
+
+  const inStockNow = Object.values(toSnap).filter(w => w.available !== false).length;
+
+  document.getElementById("stat-added").textContent      = lastAdded.length;
+  document.getElementById("stat-added-sub").textContent  = "between selected snapshots";
+  document.getElementById("stat-sold").textContent       = lastSold.length;
+  document.getElementById("stat-sold-sub").textContent   = "between selected snapshots";
+  document.getElementById("stat-total").textContent      = inStockNow;
+  document.getElementById("stat-total-sub").textContent  = "as of " + fmtKey(toKey);
+
+  applyChgSearch();
+}
+
+function applyChgSearch() {
+  const q  = document.getElementById("chg-search").value.trim().toLowerCase();
+  const fa = q ? lastAdded.filter(w => chgHits(w,q)) : lastAdded;
+  const fs = q ? lastSold.filter(w  => chgHits(w,q)) : lastSold;
+  renderChgList("list-added", fa, "added");
+  renderChgList("list-sold",  fs, "sold");
+  document.getElementById("count-added").textContent = fa.length;
+  document.getElementById("count-sold").textContent  = fs.length;
+}
+
+function chgHits(w, q) {
+  return [w.title, w.brand, String(w.price||"")].join(" ").toLowerCase().includes(q);
+}
+
+function renderChgList(id, watches, type) {
+  const el = document.getElementById(id);
+  if (!watches.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">${type==="added"?"🟢":"🔴"}</div><div class="empty-title">No ${type==="added"?"new arrivals":"sold watches"}</div><div class="empty-sub">No changes between these two snapshots.</div></div>`;
     return;
   }
-  const prevM = new Map(prevSnap.items.map(i => [i.id, i]));
-  const curM  = new Map(all.map(i => [i.id, i]));
-  const added   = all.filter(i => !prevM.has(i.id));
-  const removed = prevSnap.items.filter(i => !curM.has(i.id));
-  document.getElementById('badgeChanges').textContent = added.length + removed.length;
+  el.innerHTML = watches.map(w => {
+    const isAdded = type === "added";
+    const badge = isAdded ? `<span class="badge-added">✓ In Stock</span>` : `<span class="badge-sold">● Sold / Removed</span>`;
+    const link  = isAdded && w.url ? `<a class="card-link" href="${x(w.url)}" target="_blank">View listing →</a>` : "";
+    return `<div class="watch-card">
+      <div class="card-top"><div class="card-name">${x(w.title)}</div><div class="card-price">${w.price ? fmtPrice(w.price) : "—"}</div></div>
+      <div class="card-meta"><span class="card-cat">${x(w.brand || "")}</span></div>
+      <div class="card-footer">${badge}${link}</div>
+    </div>`;
+  }).join("");
+}
 
-  if (!added.length && !removed.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p style="color:var(--text-3)">No inventory changes since last snapshot.</p></div>';
+// ── PRICE CHANGES TAB ─────────────────────────────────────────────────────────
+function pcPopulateSelects() {
+  const fromSel = document.getElementById("pc-sel-from");
+  const toSel   = document.getElementById("pc-sel-to");
+  fromSel.innerHTML = toSel.innerHTML = "";
+  KEYS.forEach(k => {
+    const label = fmtKey(k);
+    fromSel.insertAdjacentHTML("beforeend", `<option value="${k}">${label}</option>`);
+    toSel.insertAdjacentHTML("beforeend",   `<option value="${k}">${label}</option>`);
+  });
+  fromSel.value = KEYS[0];
+  toSel.value   = KEYS[KEYS.length-1];
+  pcUpdateSubLabels();
+}
+
+function pcSetFromTo(from, to) {
+  document.getElementById("pc-sel-from").value = from;
+  document.getElementById("pc-sel-to").value   = to;
+  pcUpdateSubLabels();
+}
+
+function pcUpdateSubLabels() {
+  document.getElementById("pc-from-sub").textContent = snapCount(document.getElementById("pc-sel-from").value);
+  document.getElementById("pc-to-sub").textContent   = snapCount(document.getElementById("pc-sel-to").value);
+}
+
+document.getElementById("pc-sel-from").addEventListener("change", pcUpdateSubLabels);
+document.getElementById("pc-sel-to").addEventListener("change", pcUpdateSubLabels);
+
+document.querySelectorAll(".pc-qb").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".pc-qb").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const q = btn.dataset.q, last = KEYS[KEYS.length-1];
+    let from = KEYS[0];
+    if      (q === "last2") from = KEYS[Math.max(0, KEYS.length-2)];
+    else if (q === "today") { const p = last.slice(0,10); from = KEYS.find(k => k.startsWith(p)) || last; }
+    else if (q === "2h")    from = keyMinusMins(last, 120);
+    else if (q === "24h")   from = keyMinusMins(last, 1440);
+    else if (q === "7d")    from = keyMinusMins(last, 10080);
+    pcSetFromTo(from, last);
+    pcRunReport();
+  });
+});
+
+document.getElementById("pc-run-btn").addEventListener("click", pcRunReport);
+
+function pcRunReport() {
+  if (!HISTORY) return;
+  const fromKey  = document.getElementById("pc-sel-from").value;
+  const toKey    = document.getElementById("pc-sel-to").value;
+  const fromSnap = HISTORY[fromKey] || {};
+  const toSnap   = HISTORY[toKey]   || {};
+
+  const changes = [];
+  Object.keys(fromSnap).forEach(id => {
+    const oldW = fromSnap[id];
+    const newW = toSnap[id];
+    if (!newW) return;
+    const oldPrice = oldW.price || 0;
+    const newPrice = newW.price || 0;
+    if (!oldPrice || !newPrice || oldPrice === newPrice) return;
+    const changeAmt = newPrice - oldPrice;
+    const changePct = (changeAmt / oldPrice) * 100;
+    changes.push({
+      id, title: newW.title, brand: newW.brand, url: newW.url,
+      oldPrice, newPrice, changeAmt, changePct,
+      direction: changeAmt > 0 ? "up" : "down",
+    });
+  });
+
+  pcAllChanges = changes;
+
+  // Populate brand dropdown from changes
+  const brands = [...new Set(changes.map(c => c.brand || "").filter(Boolean))].sort();
+  fillSelect("pc-dd-brand", brands, "All Brands");
+  fillSelect("pc-cf-brand", brands, "All");
+
+  // Stats
+  const up   = changes.filter(c => c.direction === "up");
+  const down = changes.filter(c => c.direction === "down");
+  const avgChange = changes.length ? changes.reduce((a,c) => a+c.changeAmt,0) / changes.length : 0;
+
+  document.getElementById("pc-stat-up").textContent       = up.length;
+  document.getElementById("pc-stat-up-sub").textContent   = "between selected snapshots";
+  document.getElementById("pc-stat-down").textContent     = down.length;
+  document.getElementById("pc-stat-down-sub").textContent = "between selected snapshots";
+  document.getElementById("pc-stat-avg").textContent      = (avgChange>=0?"+$":"-$") + Math.abs(Math.round(avgChange)).toLocaleString();
+  document.getElementById("pc-stat-avg-sub").textContent  = changes.length + " watches changed";
+  document.getElementById("pc-stat-total").textContent    = Object.keys(toSnap).length;
+  document.getElementById("pc-stat-total-sub").textContent = "as of " + fmtKey(toKey);
+
+  pcApplyFiltersAndSort();
+}
+
+function pcApplyFiltersAndSort() {
+  let all = pcAllChanges.slice();
+
+  const dir = document.getElementById("pc-dd-direction").value;
+  if (dir) all = all.filter(c => c.direction === dir);
+
+  const brand = document.getElementById("pc-dd-brand").value;
+  if (brand) all = all.filter(c => (c.brand || "") === brand);
+
+  const cfBrand = document.getElementById("pc-cf-brand")?.value || "";
+  if (cfBrand) all = all.filter(c => (c.brand || "") === cfBrand);
+
+  // Column text filters
+  all = all.filter(c => Object.entries(pcColFilters).every(([col,q]) => {
+    if (!q) return true;
+    return String(c[col]||"").toLowerCase().includes(q.toLowerCase());
+  }));
+
+  // Global search (synced between top/mid bars)
+  const q = (document.getElementById("pc-search").value || document.getElementById("pc-search2").value || "").trim().toLowerCase();
+  if (q) all = all.filter(c => [c.title, c.brand].join(" ").toLowerCase().includes(q));
+
+  // Sort
+  all.sort((a,b) => {
+    let av = a[pcSortCol], bv = b[pcSortCol];
+    if (typeof av === "number" || typeof bv === "number") {
+      av = Number(av)||0; bv = Number(bv)||0;
+      return pcSortDir === "asc" ? av-bv : bv-av;
+    }
+    av = String(av||"").toLowerCase(); bv = String(bv||"").toLowerCase();
+    if (av < bv) return pcSortDir === "asc" ? -1 : 1;
+    if (av > bv) return pcSortDir === "asc" ?  1 : -1;
+    return 0;
+  });
+
+  pcFiltered = all;
+  document.getElementById("pc-count").textContent = all.length + " changes";
+  pcRefreshTable();
+  pcUpdateSortHeaders();
+}
+
+function pcUpdateSortHeaders() {
+  document.querySelectorAll("#pc-table thead th.sortable").forEach(th => {
+    th.classList.remove("sort-asc","sort-desc");
+    if (th.dataset.col === pcSortCol) th.classList.add(pcSortDir === "asc" ? "sort-asc" : "sort-desc");
+  });
+}
+
+function pcRefreshTable() {
+  const tbody = document.getElementById("pc-table-body");
+  if (!pcFiltered.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--muted);">No price changes match the current filters.</td></tr>`;
     return;
   }
-
-  let html = '';
-  if (added.length) {
-    html += `<div class="section-heading" style="color:var(--green)">New Listings <span class="count count-green">${added.length}</span></div>`;
-    html += tableHTML(added);
-  }
-  if (removed.length) {
-    html += `<div class="section-heading" style="color:var(--red);margin-top:32px">Removed / Sold <span class="count count-red">${removed.length}</span></div>`;
-    html += tableHTML(removed);
-  }
-  el.innerHTML = html;
+  tbody.innerHTML = pcFiltered.map(c => {
+    const up    = c.direction === "up";
+    const arrow = up ? "▲" : "▼";
+    const color = up ? "var(--red)" : "var(--green)";
+    const sign  = c.changeAmt >= 0 ? "+" : "−";
+    return `<tr>
+      <td><div class="td-name">${x(c.title)}</div></td>
+      <td class="td-cat">${x(c.brand || "—")}</td>
+      <td class="td-price">${fmtPrice(c.oldPrice)}</td>
+      <td class="td-price">${fmtPrice(c.newPrice)}</td>
+      <td style="color:${color};font-weight:800;">${arrow} ${sign}$${Math.abs(Math.round(c.changeAmt)).toLocaleString()}</td>
+      <td style="color:${color};font-weight:800;">${arrow} ${sign}${Math.abs(c.changePct).toFixed(1)}%</td>
+      <td class="td-link">${c.url ? `<a href="${x(c.url)}" target="_blank">View →</a>` : ""}</td>
+    </tr>`;
+  }).join("");
 }
 
-function renderPriceChanges() {
-  const el = document.getElementById('priceContent');
-  if (!prevSnap?.items) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">No previous snapshot available.</p></div>';
-    return;
-  }
-  const prevM = new Map(prevSnap.items.map(i => [i.id, i]));
-  const changed = all.filter(i => {
-    const p = prevM.get(i.id);
-    return p && p.price && i.price && p.price !== i.price;
-  }).map(i => ({ ...i, prevPrice: prevM.get(i.id).price }));
+// PC sort headers
+document.querySelectorAll("#pc-table thead th.sortable").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.col;
+    if (pcSortCol === col) pcSortDir = pcSortDir === "asc" ? "desc" : "asc";
+    else { pcSortCol = col; pcSortDir = "desc"; }
+    pcApplyFiltersAndSort();
+  });
+});
 
-  document.getElementById('badgePrice').textContent = changed.length;
+// PC column text filters
+document.querySelectorAll(".pc-col-filter").forEach(input => {
+  input.addEventListener("input", () => {
+    pcColFilters[input.dataset.col] = input.value.trim();
+    input.closest("th")?.classList.toggle("filter-active", !!input.value.trim());
+    pcApplyFiltersAndSort();
+  });
+  input.addEventListener("click", e => e.stopPropagation());
+});
 
-  if (!changed.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">💰</div><p style="color:var(--text-3)">No price changes since last snapshot.</p></div>';
-    return;
-  }
+// PC column select filters
+document.getElementById("pc-cf-brand")?.addEventListener("change", () => {
+  document.getElementById("pc-cf-brand").closest("th")?.classList.toggle("filter-active", !!document.getElementById("pc-cf-brand").value);
+  pcApplyFiltersAndSort();
+});
 
-  el.innerHTML = `
-    <div class="section-heading" style="color:var(--blue)">Price Changes <span class="count count-blue">${changed.length}</span></div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Brand</th><th>Model</th><th>Previous</th><th style="text-align:right">Current</th><th style="text-align:right">Δ</th></tr></thead>
-      <tbody>${changed.map(i => {
-        const diff = i.price - i.prevPrice;
-        const cls  = diff > 0 ? 'price-up' : 'price-down';
-        const sign = diff > 0 ? '▲' : '▼';
-        return `<tr>
-          <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
-          <td class="model-ref"><a href="${i.url}" target="_blank" style="color:var(--text-1);text-decoration:none">${esc(i.title)}</a></td>
-          <td class="prev-price">$${i.prevPrice.toLocaleString()}</td>
-          <td style="text-align:right"><span class="price-cell">$${i.price.toLocaleString()}</span></td>
-          <td style="text-align:right"><span class="${cls}">${sign} $${Math.abs(diff).toLocaleString()}</span></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>`;
-}
+// PC toolbar dropdowns
+["pc-dd-direction","pc-dd-brand"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("change", () => {
+    el.classList.toggle("active", !!el.value);
+    pcApplyFiltersAndSort();
+  });
+});
 
-function tableHTML(items) {
-  return `<div class="table-wrap"><table>
-    <thead><tr><th>Brand</th><th>Model / Reference</th><th style="text-align:right">Price</th><th>Status</th></tr></thead>
-    <tbody>${items.map(i => `<tr>
-      <td><span class="brand-chip ${bc(i.brand)}">${esc(i.brand)}</span></td>
-      <td class="model-ref"><a href="${i.url || '#'}" target="_blank" style="color:var(--text-1);text-decoration:none">${esc(i.title)}</a></td>
-      <td style="text-align:right">${i.price ? `<span class="price-cell">$${i.price.toLocaleString()}</span>` : '<span class="price-null">—</span>'}</td>
-      <td>${i.available ? '<span class="avail-yes">● In Stock</span>' : '<span class="avail-no">○ Unavailable</span>'}</td>
-    </tr>`).join('')}</tbody>
-  </table></div>`;
-}
+// PC search (both bars)
+document.getElementById("pc-search").addEventListener("input", pcApplyFiltersAndSort);
+document.getElementById("pc-search2").addEventListener("input", () => {
+  document.getElementById("pc-search").value = document.getElementById("pc-search2").value;
+  pcApplyFiltersAndSort();
+});
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-function switchTab(el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('panel-' + el.dataset.panel).classList.add('active');
-}
+// PC clear filters
+document.getElementById("pc-clear-filters").addEventListener("click", () => {
+  pcColFilters = {};
+  document.querySelectorAll(".pc-col-filter").forEach(i => { i.value=""; i.closest("th")?.classList.remove("filter-active"); });
+  ["pc-dd-direction","pc-dd-brand"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value=""; el.classList.remove("active"); }
+  });
+  const pcb = document.getElementById("pc-cf-brand");
+  if (pcb) { pcb.value=""; pcb.closest("th")?.classList.remove("filter-active"); }
+  document.getElementById("pc-search").value = "";
+  document.getElementById("pc-search2").value = "";
+  pcApplyFiltersAndSort();
+});
 
-// ── Export ────────────────────────────────────────────────────────────────────
-function exportCSV() {
-  const src  = filtered.length ? filtered : all;
-  const rows = [['Brand', 'Model / Reference', 'Price (USD)', 'Available', 'URL'],
-    ...src.map(i => [i.brand, i.title, i.price || '', i.available ? 'Yes' : 'No', i.url])];
-  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'BLW_' + new Date().toISOString().slice(0, 10) + '.csv';
+// ── CSV EXPORTS ───────────────────────────────────────────────────────────────
+function downloadCsv(rows, filename) {
+  const csv = rows.map(row =>
+    row.map(cell => {
+      const s = String(cell === null || cell === undefined ? "" : cell);
+      return (s.includes('"') || s.includes(',') || s.includes('\n'))
+        ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(",")
+  ).join("\n");
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
+  a.download = filename;
   a.click();
 }
 
-function esc(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function exportInventoryCsv() {
+  const rows = [["Brand","Model / Reference","Price","In Stock","URL"],
+    ...filtered.map(w => [w.brand||"", w.title||"", w.price||"", w.available?"Yes":"No", w.url||""])];
+  downloadCsv(rows, "BLW-inventory-" + new Date().toISOString().slice(0,10) + ".csv");
+  toast("✓ Exported " + filtered.length + " watches");
 }
 
-loadData();
+function exportChangesCsv() {
+  const q  = document.getElementById("chg-search").value.trim().toLowerCase();
+  const fa = q ? lastAdded.filter(w => chgHits(w,q)) : lastAdded;
+  const fs = q ? lastSold.filter(w  => chgHits(w,q)) : lastSold;
+  const rows = [["Type","Brand","Model / Reference","Price","URL"],
+    ...fa.map(w => ["New Arrival", w.brand||"", w.title||"", w.price||"", w.url||""]),
+    ...fs.map(w => ["Sold / Removed", w.brand||"", w.title||"", w.price||"", w.url||""])];
+  downloadCsv(rows, "BLW-changes-" + new Date().toISOString().slice(0,10) + ".csv");
+  toast("✓ Exported " + (fa.length + fs.length) + " changes");
+}
+
+function exportPriceChangesCsv() {
+  const rows = [["Brand","Model / Reference","Old Price","New Price","Change ($)","Change (%)","Direction","URL"],
+    ...pcFiltered.map(c => [c.brand||"", c.title||"", fmtPrice(c.oldPrice), fmtPrice(c.newPrice),
+      (c.changeAmt>=0?"+":"")+Math.round(c.changeAmt),
+      (c.changePct>=0?"+":"")+c.changePct.toFixed(1)+"%",
+      c.direction==="up"?"Price Increase":"Price Decrease", c.url||""])];
+  downloadCsv(rows, "BLW-price-changes-" + new Date().toISOString().slice(0,10) + ".csv");
+  toast("✓ Exported " + pcFiltered.length + " price changes");
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+autoLoad();
 </script>
 </body>
 </html>
